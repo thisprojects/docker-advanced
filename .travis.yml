@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ndownes/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run ndownes/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t ndownes/multi-client ./client
+  - docker build -t ndownes/multi-nginx ./nginx
+  - docker build -t ndownes/multi-server ./server
+  - docker build -t ndownes/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ndownes/multi-client
+  - docker push ndownes/multi-nginx
+  - docker push ndownes/multi-worker
+  - docker push ndownes/multi-server
